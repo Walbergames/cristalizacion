@@ -1,80 +1,21 @@
-import pygame
-from random import randint as rand
+import moderngl_window as mglw
 
-pygame.init()
+class App(mglw.WindowConfig):
+    window_size = 1600, 900
+    resource_dir = 'programs'
 
-RESOLUTION = (300, 300)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.quad = mglw.geometry.quad_fs()
+        self.prog = self.load_program(
+            vertex_shader='vertex_shader.glsl',
+            fragment_shader='fragment_shader.glsl'
+        )
 
-screen = pygame.display.set_mode(RESOLUTION)
-mapa1 = pygame.Surface(RESOLUTION)
-mapa2 = pygame.Surface(RESOLUTION)
+    def on_render(self, time: float, frametime: float):
+        """Este es el nuevo método que debe implementarse para el rendering"""
+        self.ctx.clear()
+        self.quad.render(self.prog)
 
-w, h = screen.get_size()
-
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
-
-running = True
-while running:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-        
-    # update
-    mapa2.fill(BLACK)
-    mapa2.set_at((rand(0, w), rand(0, h)), WHITE)
-    mapa2.set_at((rand(0, w), rand(0, h)), WHITE)
-    mapa2.set_at((rand(0, w), rand(0, h)), WHITE)
-    mapa2.set_at((rand(0, w), rand(0, h)), WHITE)
-    mapa2.set_at((rand(0, w), rand(0, h)), WHITE)
-    mapa2.set_at((rand(0, w), rand(0, h)), WHITE)
-    mapa2.set_at((rand(0, w), rand(0, h)), WHITE)
-    mapa2.set_at((rand(0, w), rand(0, h)), WHITE)
-    mapa2.set_at((rand(0, w), rand(0, h)), WHITE)
-    mapa2.set_at((rand(0, w), rand(0, h)), WHITE)
-
-    for x in range(1, w-1):
-        for y in range(1, h-1):
-            if mapa1.get_at((x, y)) == WHITE:
-                continue
-            n = sum(
-                [
-                    1 if mapa1.get_at(pos) == WHITE else 0
-                    for pos in [
-                        (x  , y-1),
-                        (x-1, y  ),
-                        (x+1, y  ),
-                        (x  , y+1),
-                    ]
-                ]
-            )
-            if 0 < n < 4:
-                mapa2.set_at((x, y), WHITE)
-    
-    for x in range(1, w-1):
-        for y in range(1, h-1):
-            if mapa2.get_at((x, y)) == BLACK:
-                continue
-            n = sum(
-                [
-                    1 if mapa2.get_at(pos) == WHITE else 0
-                    for pos in [
-                        (x-1, y-1),
-                        (x, y-1),
-                        (x+1, y-1),
-                        (x-1, y),
-                        (x+1, y),
-                        (x-1, y+1),
-                        (x, y+1),
-                        (x+1, y+1)
-                    ]
-                ]
-            )
-            if not n > 2:
-                mapa1.set_at((x, y), WHITE)
-
-    # draw
-    screen.blit(mapa1)
-    pygame.display.flip()
-
-pygame.quit()
+if __name__ == '__main__':
+    mglw.run_window_config(App)
